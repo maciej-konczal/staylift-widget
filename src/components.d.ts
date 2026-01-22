@@ -5,8 +5,8 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { WidgetPosition, WidgetStatus, WidgetVariant } from "./components/staylift-widget/staylift-widget";
-export { WidgetPosition, WidgetStatus, WidgetVariant } from "./components/staylift-widget/staylift-widget";
+import { WidgetMode, WidgetPositionX, WidgetPositionY, WidgetStatus, WidgetVariant } from "./components/staylift-widget/staylift-widget";
+export { WidgetMode, WidgetPositionX, WidgetPositionY, WidgetStatus, WidgetVariant } from "./components/staylift-widget/staylift-widget";
 export namespace Components {
     interface StayliftOrb {
         /**
@@ -22,13 +22,13 @@ export namespace Components {
          */
         "outputVolume": number;
         /**
-          * @default '#10b981'
+          * @default '#6366f1'
          */
         "primaryColor"?: string;
         /**
           * @default 'medium'
          */
-        "size"?: 'small' | 'medium' | 'large';
+        "size"?: 'small' | 'medium' | 'large' | number;
     }
     interface StayliftWidget {
         "agentId": string;
@@ -36,24 +36,37 @@ export namespace Components {
           * @default false
          */
         "autoExpand": boolean;
-        /**
-          * @default '#18181b'
-         */
-        "backgroundColor": string;
+        "avatarUrl"?: string;
         /**
           * @default 'Customer Support'
          */
         "brandName": string;
         "endConversation": () => Promise<void>;
+        /**
+          * @default 'Start'
+         */
+        "fabButtonText": string;
+        /**
+          * @default 'Do you need help?'
+         */
+        "fabPrompt": string;
         "getStatus": () => Promise<WidgetStatus>;
         /**
           * @default 'en'
          */
         "language": string;
         /**
-          * @default 'bottom-right'
+          * @default 'dark'
          */
-        "position": WidgetPosition;
+        "mode": WidgetMode;
+        /**
+          * @default 'right'
+         */
+        "positionX": WidgetPositionX;
+        /**
+          * @default 'bottom'
+         */
+        "positionY": WidgetPositionY;
         /**
           * @default '#6366f1'
          */
@@ -64,10 +77,6 @@ export namespace Components {
          */
         "showBranding": boolean;
         "startConversation": (textOnly?: boolean) => Promise<void>;
-        /**
-          * @default '#ffffff'
-         */
-        "textColor": string;
         /**
           * @default 'floating'
          */
@@ -126,13 +135,13 @@ declare namespace LocalJSX {
          */
         "outputVolume"?: number;
         /**
-          * @default '#10b981'
+          * @default '#6366f1'
          */
         "primaryColor"?: string;
         /**
           * @default 'medium'
          */
-        "size"?: 'small' | 'medium' | 'large';
+        "size"?: 'small' | 'medium' | 'large' | number;
     }
     interface StayliftWidget {
         "agentId": string;
@@ -140,27 +149,40 @@ declare namespace LocalJSX {
           * @default false
          */
         "autoExpand"?: boolean;
-        /**
-          * @default '#18181b'
-         */
-        "backgroundColor"?: string;
+        "avatarUrl"?: string;
         /**
           * @default 'Customer Support'
          */
         "brandName"?: string;
         /**
+          * @default 'Start'
+         */
+        "fabButtonText"?: string;
+        /**
+          * @default 'Do you need help?'
+         */
+        "fabPrompt"?: string;
+        /**
           * @default 'en'
          */
         "language"?: string;
+        /**
+          * @default 'dark'
+         */
+        "mode"?: WidgetMode;
         "onConversationEnded"?: (event: StayliftWidgetCustomEvent<void>) => void;
         "onConversationStarted"?: (event: StayliftWidgetCustomEvent<void>) => void;
         "onMessageReceived"?: (event: StayliftWidgetCustomEvent<ChatMessage>) => void;
         "onStatusChanged"?: (event: StayliftWidgetCustomEvent<WidgetStatus>) => void;
         "onWidgetError"?: (event: StayliftWidgetCustomEvent<{ message: string; code?: string }>) => void;
         /**
-          * @default 'bottom-right'
+          * @default 'right'
          */
-        "position"?: WidgetPosition;
+        "positionX"?: WidgetPositionX;
+        /**
+          * @default 'bottom'
+         */
+        "positionY"?: WidgetPositionY;
         /**
           * @default '#6366f1'
          */
@@ -169,10 +191,6 @@ declare namespace LocalJSX {
           * @default true
          */
         "showBranding"?: boolean;
-        /**
-          * @default '#ffffff'
-         */
-        "textColor"?: string;
         /**
           * @default 'floating'
          */

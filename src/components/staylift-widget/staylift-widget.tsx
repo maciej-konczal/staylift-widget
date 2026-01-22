@@ -2,8 +2,10 @@ import { Component, Prop, State, h, Event, EventEmitter, Method, Element } from 
 import { Conversation } from '@elevenlabs/client';
 
 export type WidgetStatus = 'disconnected' | 'connecting' | 'connected' | 'disconnecting';
-export type WidgetPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+export type WidgetPositionX = 'left' | 'center' | 'right';
+export type WidgetPositionY = 'top' | 'bottom';
 export type WidgetVariant = 'floating' | 'inline';
+export type WidgetMode = 'light' | 'dark';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -20,15 +22,20 @@ export class StayliftWidget {
 
   // ============ PROPS ============
   @Prop() agentId!: string;
-  @Prop() position: WidgetPosition = 'bottom-right';
+  @Prop() positionX: WidgetPositionX = 'right';
+  @Prop() positionY: WidgetPositionY = 'bottom';
   @Prop() variant: WidgetVariant = 'floating';
+  @Prop() mode: WidgetMode = 'dark';
   @Prop() primaryColor: string = '#6366f1';
-  @Prop() backgroundColor: string = '#18181b';
-  @Prop() textColor: string = '#ffffff';
   @Prop() brandName: string = 'Customer Support';
   @Prop() language: string = 'en';
   @Prop() autoExpand: boolean = false;
   @Prop() showBranding: boolean = true;
+
+  // FAB customization
+  @Prop() avatarUrl?: string;
+  @Prop() fabPrompt: string = 'Do you need help?';
+  @Prop() fabButtonText: string = 'Start';
 
   // ============ STATE ============
   @State() status: WidgetStatus = 'disconnected';
@@ -88,8 +95,9 @@ export class StayliftWidget {
 
   private scrollToBottom(): void {
     if (this.messagesContainer) {
+      const container = this.messagesContainer;
       setTimeout(() => {
-        this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        container.scrollTop = container.scrollHeight;
       }, 50);
     }
   }
@@ -292,6 +300,7 @@ export class StayliftWidget {
         connecting: 'Connecting...',
         ready: 'Ready to chat',
         talkOrType: 'Start talking or type',
+        poweredBy: 'Powered by Staylift',
       },
       pl: {
         microphoneError: 'Proszę włączyć uprawnienia mikrofonu.',
@@ -305,25 +314,63 @@ export class StayliftWidget {
         connecting: 'Łączenie...',
         ready: 'Gotowe do czatu',
         talkOrType: 'Mów lub pisz',
+        poweredBy: 'Powered by Staylift',
+      },
+      de: {
+        microphoneError: 'Bitte aktivieren Sie die Mikrofonberechtigung in Ihrem Browser.',
+        connectionError: 'Verbindung fehlgeschlagen. Bitte versuchen Sie es erneut.',
+        tapToStart: 'Tippen, um den Voice-Chat zu starten',
+        connected: 'Verbunden',
+        placeholder: 'Nachricht eingeben...',
+        emptyTitle: 'Gespräch starten',
+        emptyDesc: 'Nachricht eingeben oder Voice-Button drücken',
+        starting: 'Gespräch wird gestartet',
+        connecting: 'Verbindung wird hergestellt...',
+        ready: 'Bereit zum Chatten',
+        talkOrType: 'Sprechen oder tippen',
+        poweredBy: 'Powered by Staylift',
       },
     };
     return translations[this.language]?.[key] || translations['en'][key] || key;
   }
 
   private getPositionClasses(): string {
-    return `sl-${this.position}`;
+    return `sl-x-${this.positionX} sl-y-${this.positionY}`;
   }
 
   // ============ RENDER ============
   
+  private getThemeColors() {
+    if (this.mode === 'light') {
+      return {
+        bg: '#ffffff',
+        text: '#18181b',
+        muted: '#71717a',
+        border: '#e4e4e7',
+        surface: '#f4f4f5',
+      };
+    }
+    return {
+      bg: '#18181b',
+      text: '#ffffff',
+      muted: '#a1a1aa',
+      border: '#27272a',
+      surface: '#27272a',
+    };
+  }
+
   render() {
     const isTransitioning = this.status === 'connecting' || this.status === 'disconnecting';
     const isCallActive = this.status === 'connected' && !this.isTextOnlyMode;
+    const theme = this.getThemeColors();
 
     const cssVars = {
       '--sl-primary': this.primaryColor,
-      '--sl-bg': this.backgroundColor,
-      '--sl-text': this.textColor,
+      '--sl-bg': theme.bg,
+      '--sl-text': theme.text,
+      '--sl-muted': theme.muted,
+      '--sl-border': theme.border,
+      '--sl-surface': theme.surface,
     };
 
     if (this.variant === 'inline') {
@@ -341,15 +388,27 @@ export class StayliftWidget {
             {this.renderCard(isCallActive, isTransitioning)}
           </div>
         ) : (
-          <button class="sl-fab" onClick={this.handleToggleExpand}>
-            <staylift-orb 
-              size={48} 
-              primaryColor={this.primaryColor}
-              inputVolume={this.inputVolume}
-              outputVolume={this.outputVolume}
-              isActive={isCallActive}
-            />
-          </button>
+          <div class="sl-fab-pill">
+            <div class="sl-fab-avatar">
+              {this.avatarUrl ? (
+                <img src={this.avatarUrl} alt="" class="sl-fab-avatar-img" />
+              ) : (
+                <staylift-orb
+                  size={48}
+                  primaryColor={this.primaryColor}
+                  inputVolume={this.inputVolume}
+                  outputVolume={this.outputVolume}
+                  isActive={isCallActive}
+                />
+              )}
+            </div>
+            <div class="sl-fab-content">
+              <span class="sl-fab-prompt">{this.fabPrompt}</span>
+              <button class="sl-fab-btn" onClick={this.handleToggleExpand}>
+                {this.fabButtonText}
+              </button>
+            </div>
+          </div>
         )}
       </div>
     );
@@ -368,13 +427,17 @@ export class StayliftWidget {
       <div class="sl-header">
         <div class="sl-header-left">
           <div class="sl-orb-ring">
-            <staylift-orb 
-              size={40} 
-              primaryColor={this.primaryColor}
-              inputVolume={this.inputVolume}
-              outputVolume={this.outputVolume}
-              isActive={this.status === 'connected' && !this.isTextOnlyMode}
-            />
+            {this.avatarUrl ? (
+              <img src={this.avatarUrl} alt="" class="sl-header-avatar-img" />
+            ) : (
+              <staylift-orb
+                size={40}
+                primaryColor={this.primaryColor}
+                inputVolume={this.inputVolume}
+                outputVolume={this.outputVolume}
+                isActive={this.status === 'connected' && !this.isTextOnlyMode}
+              />
+            )}
           </div>
           <div class="sl-header-text">
             <span class="sl-title">{this.brandName}</span>
@@ -410,7 +473,7 @@ export class StayliftWidget {
     const isConnected = this.status === 'connected';
 
     return (
-      <div class="sl-content" ref={(el) => this.messagesContainer = el}>
+      <div class="sl-content" ref={(el) => this.messagesContainer = el ?? null}>
         {this.messages.length === 0 ? (
           <div class="sl-empty">
             <staylift-orb size={48} primaryColor={this.primaryColor} isActive={false} />
@@ -458,6 +521,13 @@ export class StayliftWidget {
   private renderFooter(isCallActive: boolean, isTransitioning: boolean) {
     return (
       <div class="sl-footer">
+        {this.showBranding && (
+          <div class="sl-branding">
+            <a href="https://staylift.com" target="_blank" rel="noopener noreferrer">
+              {this.t('poweredBy')}
+            </a>
+          </div>
+        )}
         <div class="sl-input-row">
           <input
             type="text"

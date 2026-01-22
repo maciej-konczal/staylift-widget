@@ -2,7 +2,7 @@ import { Component, Prop, State, h, Element } from '@stencil/core';
 
 @Component({
   tag: 'staylift-orb',
-  styleUrl: 'staylift-orb.scss',
+  styleUrl: 'staylift-orb.css',
   shadow: true,
 })
 export class StayliftOrb {
@@ -10,8 +10,8 @@ export class StayliftOrb {
   @Prop() inputVolume: number = 0;
   @Prop() outputVolume: number = 0;
   @Prop() isActive: boolean = false;
-  @Prop() primaryColor?: string = '#10b981';
-  @Prop() size?: 'small' | 'medium' | 'large' = 'medium';
+  @Prop() primaryColor?: string = '#6366f1';
+  @Prop() size?: 'small' | 'medium' | 'large' | number = 'medium';
   @State() animationFrame: number = 0;
 
   private canvasRef?: HTMLCanvasElement;
@@ -113,8 +113,10 @@ export class StayliftOrb {
   }
 
   render() {
+    const sizeClass = typeof this.size === 'number' ? '' : `orb--${this.size}`;
+    const customStyle = typeof this.size === 'number' ? { width: `${this.size}px`, height: `${this.size}px` } : {};
     return (
-      <div class={`orb orb--${this.size} ${this.isActive ? 'orb--active' : ''}`}>
+      <div class={`orb ${sizeClass} ${this.isActive ? 'orb--active' : ''}`} style={customStyle}>
         <canvas ref={(el) => (this.canvasRef = el)} class="orb__canvas" />
       </div>
     );
