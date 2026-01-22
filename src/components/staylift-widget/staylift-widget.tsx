@@ -40,6 +40,7 @@ export class StayliftWidget {
   // ============ STATE ============
   @State() status: WidgetStatus = 'disconnected';
   @State() isExpanded: boolean = false;
+  @State() termsAccepted: boolean = false;
   @State() errorMessage: string | null = null;
   @State() inputVolume: number = 0;
   @State() outputVolume: number = 0;
@@ -301,6 +302,11 @@ export class StayliftWidget {
         ready: 'Ready to chat',
         talkOrType: 'Start talking or type',
         poweredBy: 'Powered by Staylift',
+        termsTitle: 'Terms and Conditions',
+        termsText: 'By clicking "Agree," and each time I interact with this AI agent, I consent to the recording, storage, and sharing of my communications with third-party service providers, and as described in the Privacy Policy.',
+        termsWarning: 'If you do not wish to have your conversations recorded, please refrain from using this service.',
+        termsAgree: 'Agree',
+        termsDecline: 'Decline',
       },
       pl: {
         microphoneError: 'Proszę włączyć uprawnienia mikrofonu.',
@@ -315,6 +321,11 @@ export class StayliftWidget {
         ready: 'Gotowe do czatu',
         talkOrType: 'Mów lub pisz',
         poweredBy: 'Powered by Staylift',
+        termsTitle: 'Regulamin',
+        termsText: 'Klikając „Zgadzam się" i za każdym razem, gdy wchodzę w interakcję z tym agentem AI, wyrażam zgodę na nagrywanie, przechowywanie i udostępnianie moich komunikatów zewnętrznym dostawcom usług, zgodnie z Polityką Prywatności.',
+        termsWarning: 'Jeśli nie chcesz, aby Twoje rozmowy były nagrywane, prosimy o nieużywanie tej usługi.',
+        termsAgree: 'Zgadzam się',
+        termsDecline: 'Odrzuć',
       },
       de: {
         microphoneError: 'Bitte aktivieren Sie die Mikrofonberechtigung in Ihrem Browser.',
@@ -329,10 +340,23 @@ export class StayliftWidget {
         ready: 'Bereit zum Chatten',
         talkOrType: 'Sprechen oder tippen',
         poweredBy: 'Powered by Staylift',
+        termsTitle: 'Nutzungsbedingungen',
+        termsText: 'Durch Klicken auf „Zustimmen" und bei jeder Interaktion mit diesem KI-Agenten stimme ich der Aufzeichnung, Speicherung und Weitergabe meiner Kommunikation an Drittanbieter zu, wie in der Datenschutzrichtlinie beschrieben.',
+        termsWarning: 'Wenn Sie nicht möchten, dass Ihre Gespräche aufgezeichnet werden, verwenden Sie diesen Dienst bitte nicht.',
+        termsAgree: 'Zustimmen',
+        termsDecline: 'Ablehnen',
       },
     };
     return translations[this.language]?.[key] || translations['en'][key] || key;
   }
+
+  private handleAcceptTerms = () => {
+    this.termsAccepted = true;
+  };
+
+  private handleDeclineTerms = () => {
+    this.isExpanded = false;
+  };
 
   private getPositionClasses(): string {
     return `sl-x-${this.positionX} sl-y-${this.positionY}`;
@@ -415,11 +439,34 @@ export class StayliftWidget {
   }
 
   private renderCard(isCallActive: boolean, isTransitioning: boolean) {
+    if (!this.termsAccepted) {
+      return this.renderTerms();
+    }
     return [
       this.renderHeader(isTransitioning),
       this.renderContent(),
       this.renderFooter(isCallActive, isTransitioning),
     ];
+  }
+
+  private renderTerms() {
+    return (
+      <div class="sl-terms">
+        <div class="sl-terms-content">
+          <h3 class="sl-terms-title">{this.t('termsTitle')}</h3>
+          <p class="sl-terms-text">{this.t('termsText')}</p>
+          <p class="sl-terms-warning">{this.t('termsWarning')}</p>
+        </div>
+        <div class="sl-terms-actions">
+          <button class="sl-terms-btn sl-terms-btn--decline" onClick={this.handleDeclineTerms}>
+            {this.t('termsDecline')}
+          </button>
+          <button class="sl-terms-btn sl-terms-btn--agree" onClick={this.handleAcceptTerms}>
+            {this.t('termsAgree')}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   private renderHeader(isTransitioning: boolean) {

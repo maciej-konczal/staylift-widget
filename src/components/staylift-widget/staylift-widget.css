@@ -472,6 +472,82 @@
   color: white;
 }
 
+/* ============ TERMS ============ */
+
+.sl-terms {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 24px;
+}
+
+.sl-terms-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.sl-terms-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--sl-text);
+}
+
+.sl-terms-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--sl-text);
+}
+
+.sl-terms-warning {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--sl-muted);
+  font-style: italic;
+}
+
+.sl-terms-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sl-border);
+}
+
+.sl-terms-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sl-terms-btn--decline {
+  background: var(--sl-surface);
+  color: var(--sl-muted);
+}
+
+.sl-terms-btn--decline:hover {
+  background: var(--sl-border);
+  color: var(--sl-text);
+}
+
+.sl-terms-btn--agree {
+  background: var(--sl-primary);
+  color: white;
+}
+
+.sl-terms-btn--agree:hover {
+  filter: brightness(1.1);
+}
+
 /* ============ RESPONSIVE ============ */
 
 @media (max-width: 480px) {
