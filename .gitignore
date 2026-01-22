@@ -2,3 +2,4 @@ node_modules
 dist
 www
 .stencil
+loader

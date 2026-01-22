@@ -131,6 +131,29 @@ export class StayliftWidget {
       if (!skipClear) this.messages = [];
       if (!textOnly) await this.getMicStream();
 
+      // Store pending message to send after connection
+      const messageToSend = this.pendingMessage;
+
+      // Create a promise that resolves when we're connected or rejects on failure
+      let resolveConnected: () => void;
+      let rejectConnected: (error: Error) => void;
+      const connectedPromise = new Promise<void>((resolve, reject) => {
+        resolveConnected = resolve;
+        rejectConnected = reject;
+      });
+
+      // Add connection timeout
+      const CONNECTION_TIMEOUT = 15000;
+      const timeoutId = setTimeout(() => {
+        rejectConnected(new Error('Connection timeout'));
+      }, CONNECTION_TIMEOUT);
+
+      console.log('[Staylift] Starting session with config:', {
+        agentId: this.agentId,
+        connectionType: textOnly ? 'websocket' : 'webrtc',
+        textOnly,
+      });
+
       this.conversation = await Conversation.startSession({
         agentId: this.agentId,
         connectionType: textOnly ? 'websocket' : 'webrtc',
@@ -138,22 +161,46 @@ export class StayliftWidget {
           conversation: { textOnly },
           agent: { firstMessage: textOnly ? '' : undefined },
         },
-        onConnect: () => {
-          this.status = 'connected';
-          this.statusChanged.emit(this.status);
-          this.conversationStarted.emit();
-          if (!textOnly) this.startVolumeMonitoring();
+        onConnect: (props: { conversationId: string }) => {
+          console.log('[Staylift] onConnect fired! conversationId:', props.conversationId);
         },
-        onDisconnect: () => {
-          this.status = 'disconnected';
-          this.statusChanged.emit(this.status);
-          this.conversationEnded.emit();
-          this.stopVolumeMonitoring();
+        onDisconnect: (props: { reason?: string; message?: string }) => {
+          console.log('[Staylift] onDisconnect fired!', props);
         },
-        onMessage: (message) => {
+        onStatusChange: (statusEvent: { status: string }) => {
+          const newStatus = statusEvent.status as WidgetStatus;
+          const previousStatus = this.status;
+          console.log('[Staylift] onStatusChange:', previousStatus, '->', newStatus, 'at', new Date().toISOString());
+          this.status = newStatus;
+          this.statusChanged.emit(newStatus);
+
+          // Handle connected state
+          if (newStatus === 'connected' && previousStatus !== 'connected') {
+            clearTimeout(timeoutId);
+            this.conversationStarted.emit();
+            if (!textOnly) this.startVolumeMonitoring();
+            resolveConnected(); // Signal that we're connected
+          }
+
+          // Handle disconnected state
+          if (newStatus === 'disconnected') {
+            if (previousStatus === 'connected') {
+              this.conversationEnded.emit();
+              this.stopVolumeMonitoring();
+            } else if (previousStatus === 'connecting') {
+              // Connection failed before establishing
+              clearTimeout(timeoutId);
+              rejectConnected(new Error('Connection failed'));
+            }
+          }
+        },
+        onMessage: (message: { message?: string; source?: string; role?: string }) => {
+          console.log('[Staylift] Message received:', message);
           if (message.message) {
+            // Use 'role' if available, fallback to deprecated 'source'
+            const messageRole = message.role || message.source;
             const chatMessage: ChatMessage = {
-              role: message.source === 'user' ? 'user' : 'assistant',
+              role: messageRole === 'user' ? 'user' : 'assistant',
               content: message.message,
             };
             this.messages = [...this.messages, chatMessage];
@@ -161,26 +208,44 @@ export class StayliftWidget {
             this.scrollToBottom();
           }
         },
-        onError: (error) => {
-          console.error('Staylift:', error);
+        onError: (error: unknown) => {
+          console.error('[Staylift] onError fired:', error);
+          console.error('[Staylift] Error type:', typeof error);
+          console.error('[Staylift] Error details:', JSON.stringify(error, null, 2));
           this.errorMessage = this.t('connectionError');
           this.status = 'disconnected';
           this.statusChanged.emit(this.status);
           this.widgetError.emit({ message: String(error) });
         },
+        onDebug: (debug: unknown) => {
+          console.log('[Staylift] onDebug:', debug);
+        },
       });
+
+      console.log('[Staylift] Conversation session created, waiting for connected status...');
+
+      // Wait for connected status before sending message
+      await connectedPromise;
+
+      // Now send the pending message (status is guaranteed 'connected' after promise resolves)
+      if (messageToSend && this.conversation) {
+        console.log('[Staylift] Sending pending message:', messageToSend);
+        this.conversation.sendUserMessage(messageToSend);
+        this.pendingMessage = null;
+      }
     } catch (error) {
       console.error('Error starting conversation:', error);
       this.status = 'disconnected';
       this.statusChanged.emit(this.status);
-      this.messages = [];
-      
+      // Don't clear messages - keep user's message visible
+      this.pendingMessage = null;
+
       if (error instanceof DOMException && error.name === 'NotAllowedError') {
         this.errorMessage = this.t('microphoneError');
       } else {
         this.errorMessage = this.t('connectionError');
       }
-      
+
       this.widgetError.emit({ message: this.errorMessage });
     }
   }
@@ -201,27 +266,36 @@ export class StayliftWidget {
     }
   }
 
+  private pendingMessage: string | null = null;
+
   private async handleSendText(text?: string): Promise<void> {
     const msg = text || this.inputText.trim();
     if (!msg) return;
 
     // If disconnected, start text-only session
-    if (this.status === 'disconnected' || this.status === null) {
+    if (this.status === 'disconnected') {
       const userMessage: ChatMessage = { role: 'user', content: msg };
       this.inputText = '';
-      
+      this.pendingMessage = msg; // Store message to send after connection
+      this.messages = [userMessage];
+      this.scrollToBottom();
+
       try {
         await this.handleStartConversation(true, true);
-        this.messages = [userMessage];
-        this.conversation?.sendUserMessage?.(msg);
+        // Message will be sent in onConnect callback
       } catch (error) {
         console.error('Failed to start conversation:', error);
+        this.pendingMessage = null;
       }
     } else if (this.status === 'connected') {
       const userMessage: ChatMessage = { role: 'user', content: msg };
       this.messages = [...this.messages, userMessage];
       this.inputText = '';
-      this.conversation?.sendUserMessage?.(msg);
+      if (this.conversation && typeof this.conversation.sendUserMessage === 'function') {
+        this.conversation.sendUserMessage(msg);
+      } else {
+        console.error('[Staylift] Cannot send message: no active conversation');
+      }
       this.scrollToBottom();
     }
   }
