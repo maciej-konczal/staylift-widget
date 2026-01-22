@@ -148,12 +148,6 @@ export class StayliftWidget {
         rejectConnected(new Error('Connection timeout'));
       }, CONNECTION_TIMEOUT);
 
-      console.log('[Staylift] Starting session with config:', {
-        agentId: this.agentId,
-        connectionType: textOnly ? 'websocket' : 'webrtc',
-        textOnly,
-      });
-
       this.conversation = await Conversation.startSession({
         agentId: this.agentId,
         connectionType: textOnly ? 'websocket' : 'webrtc',
@@ -161,16 +155,9 @@ export class StayliftWidget {
           conversation: { textOnly },
           agent: { firstMessage: textOnly ? '' : undefined },
         },
-        onConnect: (props: { conversationId: string }) => {
-          console.log('[Staylift] onConnect fired! conversationId:', props.conversationId);
-        },
-        onDisconnect: (props: { reason?: string; message?: string }) => {
-          console.log('[Staylift] onDisconnect fired!', props);
-        },
         onStatusChange: (statusEvent: { status: string }) => {
           const newStatus = statusEvent.status as WidgetStatus;
           const previousStatus = this.status;
-          console.log('[Staylift] onStatusChange:', previousStatus, '->', newStatus, 'at', new Date().toISOString());
           this.status = newStatus;
           this.statusChanged.emit(newStatus);
 
@@ -195,7 +182,6 @@ export class StayliftWidget {
           }
         },
         onMessage: (message: { message?: string; source?: string; role?: string }) => {
-          console.log('[Staylift] Message received:', message);
           if (message.message) {
             // Use 'role' if available, fallback to deprecated 'source'
             const messageRole = message.role || message.source;
@@ -209,32 +195,22 @@ export class StayliftWidget {
           }
         },
         onError: (error: unknown) => {
-          console.error('[Staylift] onError fired:', error);
-          console.error('[Staylift] Error type:', typeof error);
-          console.error('[Staylift] Error details:', JSON.stringify(error, null, 2));
           this.errorMessage = this.t('connectionError');
           this.status = 'disconnected';
           this.statusChanged.emit(this.status);
           this.widgetError.emit({ message: String(error) });
         },
-        onDebug: (debug: unknown) => {
-          console.log('[Staylift] onDebug:', debug);
-        },
       });
-
-      console.log('[Staylift] Conversation session created, waiting for connected status...');
 
       // Wait for connected status before sending message
       await connectedPromise;
 
       // Now send the pending message (status is guaranteed 'connected' after promise resolves)
       if (messageToSend && this.conversation) {
-        console.log('[Staylift] Sending pending message:', messageToSend);
         this.conversation.sendUserMessage(messageToSend);
         this.pendingMessage = null;
       }
     } catch (error) {
-      console.error('Error starting conversation:', error);
       this.status = 'disconnected';
       this.statusChanged.emit(this.status);
       // Don't clear messages - keep user's message visible
@@ -283,8 +259,7 @@ export class StayliftWidget {
       try {
         await this.handleStartConversation(true, true);
         // Message will be sent in onConnect callback
-      } catch (error) {
-        console.error('Failed to start conversation:', error);
+      } catch {
         this.pendingMessage = null;
       }
     } else if (this.status === 'connected') {
