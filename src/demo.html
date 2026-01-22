@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staylift Widget - Demo</title>
+  <script type="module" src="/build/staylift-widget.esm.js"></script>
+  <script nomodule src="/build/staylift-widget.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #09090b;
+      min-height: 100vh;
+      color: #fff;
+    }
+    
+    .demo-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    
+    .demo-header h1 { 
+      margin: 0 0 8px; 
+      font-size: 2rem;
+      font-weight: 600;
+    }
+    
+    .demo-header p { 
+      margin: 0; 
+      color: #a1a1aa;
+    }
+    
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .demo-card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .demo-card h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .demo-card p {
+      margin: 0 0 20px;
+      font-size: 13px;
+      color: #71717a;
+    }
+    
+    .demo-card-content {
+      display: flex;
+      justify-content: center;
+    }
+
+    .features {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #a1a1aa;
+    }
+
+    .feature svg {
+      color: #6366f1;
+    }
+    
+    .code-section {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 32px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .code-section h3 {
+      margin: 0 0 16px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    pre {
+      background: #09090b;
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      color: #a1a1aa;
+      margin: 0;
+    }
+    
+    code .tag { color: #f472b6; }
+    code .attr { color: #38bdf8; }
+    code .str { color: #a3e635; }
+  </style>
+</head>
+<body>
+  <div class="demo-header">
+    <h1>Staylift Voice Widget</h1>
+    <p>Chat + Voice for Hotels • Powered by ElevenLabs</p>
+    
+    <div class="features">
+      <div class="feature">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Text Chat (WebSocket)
+      </div>
+      <div class="feature">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 10v3"></path>
+          <path d="M6 6v11"></path>
+          <path d="M10 3v18"></path>
+          <path d="M14 8v7"></path>
+          <path d="M18 5v13"></path>
+          <path d="M22 10v3"></path>
+        </svg>
+        Voice Calls (WebRTC)
+      </div>
+      <div class="feature">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20"/>
+        </svg>
+        Multi-language
+      </div>
+    </div>
+  </div>
+
+  <div class="demo-grid">
+    <!-- Inline Widget -->
+    <div class="demo-card">
+      <h2>Inline Widget</h2>
+      <p>Embed directly in your page. Start typing or click the voice button.</p>
+      <div class="demo-card-content">
+        <staylift-widget 
+          agent-id="demo-agent-id"
+          brand-name="Customer Support"
+          variant="inline"
+          primary-color="#6366f1"
+        ></staylift-widget>
+      </div>
+    </div>
+    
+    <!-- Custom Branding -->
+    <div class="demo-card">
+      <h2>Custom Branding</h2>
+      <p>Match your hotel's brand colors.</p>
+      <div class="demo-card-content">
+        <staylift-widget 
+          agent-id="demo-agent-id"
+          brand-name="Grand Hotel Vienna"
+          variant="inline"
+          primary-color="#8b5cf6"
+        ></staylift-widget>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-section">
+    <h3>Quick Start</h3>
+    <pre><code><span class="tag">&lt;staylift-widget</span>
+  <span class="attr">agent-id</span>=<span class="str">"your-elevenlabs-agent-id"</span>
+  <span class="attr">brand-name</span>=<span class="str">"Your Hotel Name"</span>
+  <span class="attr">primary-color</span>=<span class="str">"#6366f1"</span>
+<span class="tag">&gt;&lt;/staylift-widget&gt;</span>
+
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="str">"https://unpkg.com/@staylift/voice-widget"</span><span class="tag">&gt;&lt;/script&gt;</span></code></pre>
+  </div>
+
+  <div class="code-section">
+    <h3>How It Works</h3>
+    <pre><code>// Text-only mode (WebSocket) - starts automatically when user types
+// No microphone permission needed
+
+// Voice mode (WebRTC) - starts when user clicks voice button  
+// Requests microphone permission
+
+// Both modes use the same chat interface
+// Messages appear in real-time</code></pre>
+  </div>
+
+  <!-- Floating Widget Demo -->
+  <staylift-widget 
+    agent-id="demo-agent-id"
+    brand-name="Hotel Concierge"
+    position="bottom-right"
+    primary-color="#6366f1"
+  ></staylift-widget>
+
+  <script>
+    document.querySelectorAll('staylift-widget').forEach(widget => {
+      widget.addEventListener('statusChanged', (e) => {
+        console.log('Status:', e.detail);
+      });
+      widget.addEventListener('messageReceived', (e) => {
+        console.log('Message:', e.detail);
+      });
+    });
+  </script>
+</body>
+</html>

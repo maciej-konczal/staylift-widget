@@ -1,0 +1,58 @@
+{
+  "name": "@staylift/voice-widget",
+  "version": "0.0.1",
+  "description": "Staylift Voice Widget - Embeddable voice agents for hotels",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "collection": "dist/collection/collection-manifest.json",
+  "collection:main": "dist/collection/index.js",
+  "unpkg": "dist/staylift-widget/staylift-widget.esm.js",
+  "exports": {
+    ".": {
+      "import": "./dist/staylift-widget/staylift-widget.esm.js",
+      "require": "./dist/staylift-widget/staylift-widget.cjs.js"
+    },
+    "./loader": {
+      "import": "./loader/index.js",
+      "require": "./loader/index.cjs",
+      "types": "./loader/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/staylift/voice-widget"
+  },
+  "files": [
+    "dist/",
+    "loader/"
+  ],
+  "scripts": {
+    "build": "stencil build",
+    "start": "stencil build --dev --watch --serve",
+    "test": "stencil test --spec --e2e",
+    "test.watch": "stencil test --spec --e2e --watchAll",
+    "generate": "stencil generate",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@elevenlabs/client": "^0.13.0"
+  },
+  "devDependencies": {
+    "@stencil/core": "^4.22.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.0",
+    "jest": "^29.7.0",
+    "jest-cli": "^29.7.0",
+    "puppeteer": "^21.6.1"
+  },
+  "license": "MIT",
+  "keywords": [
+    "staylift",
+    "voice-widget", 
+    "elevenlabs",
+    "hotel",
+    "web-component",
+    "stencil"
+  ]
+}
