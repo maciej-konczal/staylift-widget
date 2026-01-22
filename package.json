@@ -1,7 +1,7 @@
 {
-  "name": "@staylift/voice-widget",
+  "name": "@staylift/conv-widget",
   "version": "0.0.1",
-  "description": "Staylift Voice Widget - Embeddable voice agents for hotels",
+  "description": "Staylift Conversational Widget - Embeddable agents for hotels",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/staylift/voice-widget"
+    "url": "https://github.com/staylift/conv-widget"
   },
   "files": [
     "dist/",
@@ -49,7 +49,7 @@
   "license": "MIT",
   "keywords": [
     "staylift",
-    "voice-widget", 
+    "conv-widget",
     "elevenlabs",
     "hotel",
     "web-component",
