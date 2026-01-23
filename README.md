@@ -1,4 +1,4 @@
-# Staylift Voice Widget
+# Staylift Conversational Widget
 
 **Voice + Text Chat** widget for hotels, powered by ElevenLabs Conversational AI.
 
@@ -21,17 +21,17 @@
   primary-color="#8b5cf6"
 ></staylift-widget>
 
-<script src="https://unpkg.com/@staylift/voice-widget"></script>
+<script src="https://unpkg.com/@staylift-tech/conv-widget"></script>
 ```
 
 ### NPM (For developers)
 
 ```bash
-npm install @staylift/voice-widget
+npm install @staylift-tech/conv-widget
 ```
 
 ```javascript
-import '@staylift/voice-widget';
+import '@staylift-tech/conv-widget';
 ```
 
 ## How It Works
@@ -207,7 +207,7 @@ export default function VoiceWidget() {
 </template>
 
 <script setup>
-import '@staylift/voice-widget';
+import '@staylift-tech/conv-widget';
 </script>
 ```
 

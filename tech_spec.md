@@ -1,4 +1,4 @@
-# Staylift Voice Widget
+# Staylift Conversational Widget
 
 ## Technical Specification & Project Summary
 
@@ -6,7 +6,7 @@
 
 ## 1. Overview
 
-**Staylift Voice Widget** is an embeddable web component that enables hotels to add AI-powered voice and text chat to their websites. Built with Stencil.js for framework-agnostic compatibility, it integrates with ElevenLabs Conversational AI to provide real-time voice conversations and text messaging.
+**Staylift Conversational Widget** is an embeddable web component that enables hotels to add AI-powered voice and text chat to their websites. Built with Stencil.js for framework-agnostic compatibility, it integrates with ElevenLabs Conversational AI to provide real-time voice conversations and text messaging.
 
 ### Key Value Proposition
 
@@ -229,7 +229,7 @@ dist/
   primary-color="#8b5cf6"
 ></staylift-widget>
 
-<script type="module" src="https://unpkg.com/@staylift/voice-widget/dist/staylift-widget/staylift-widget.esm.js"></script>
+<script type="module" src="https://unpkg.com/@staylift-tech/conv-widget/dist/staylift-widget/staylift-widget.esm.js"></script>
 ```
 
 ### 9.2 React / Next.js
@@ -242,7 +242,7 @@ export default function VoiceWidget() {
   const widgetRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    import('@staylift/voice-widget');
+    import('@staylift-tech/conv-widget');
     
     const widget = widgetRef.current;
     widget?.addEventListener('messageReceived', (e: CustomEvent) => {
@@ -272,7 +272,7 @@ export default function VoiceWidget() {
 </template>
 
 <script setup>
-import '@staylift/voice-widget';
+import '@staylift-tech/conv-widget';
 
 const onMessage = (e) => {
   console.log('Message:', e.detail);
@@ -301,13 +301,13 @@ npm publish --access public
 
 ```
 # Latest version
-https://unpkg.com/@staylift/voice-widget
+https://unpkg.com/@staylift-tech/conv-widget
 
 # Specific version
-https://unpkg.com/@staylift/voice-widget@1.0.0
+https://unpkg.com/@staylift-tech/conv-widget@1.0.0
 
 # Direct ESM file
-https://unpkg.com/@staylift/voice-widget/dist/staylift-widget/staylift-widget.esm.js
+https://unpkg.com/@staylift-tech/conv-widget/dist/staylift-widget/staylift-widget.esm.js
 ```
 
 ---
@@ -393,4 +393,4 @@ MIT © Staylift
 
 - **Website**: https://staylift.com
 - **Support**: support@staylift.com
-- **GitHub**: https://github.com/staylift/voice-widget
+- **GitHub**: https://github.com/staylift/conv-widget
