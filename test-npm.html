@@ -3,62 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Test @staylift-tech/conv-widget from NPM</title>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      margin: 0;
-      padding: 40px;
-      background: #f5f5f5;
-    }
-    h1 {
-      color: #333;
-    }
-    .info {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    code {
-      background: #e0e0e0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-  </style>
+  <title>Test Widget</title>
 </head>
 <body>
-  <h1>Testing @staylift-tech/conv-widget from NPM</h1>
+  <h1>Hotel Website</h1>
+  <p>Your content here...</p>
 
-  <div class="info">
-    <p>This page loads the widget directly from unpkg CDN:</p>
-    <code>https://unpkg.com/@staylift-tech/conv-widget</code>
-  </div>
-
-  <staylift-widget
-    agent-id="agent_0001kfetq638f17sb0yht5wrdetr"
-    brand-name="Hotel Concierge"
-    primary-color="#6366f1"
-    language="en"
-    variant="floating"
-    position-x="right"
-    position-y="bottom"
-  ></staylift-widget>
-
-  <script type="module" src="https://unpkg.com/@staylift-tech/conv-widget@0.0.1/dist/staylift-widget/staylift-widget.esm.js"></script>
-
-  <script>
-    const widget = document.querySelector('staylift-widget');
-
-    widget.addEventListener('statusChanged', (e) => {
-      console.log('Status:', e.detail);
-    });
-
-    widget.addEventListener('messageReceived', (e) => {
-      console.log('Message:', e.detail);
-    });
-  </script>
+  <staylift-widget agent-id="agent_0001kfetq638f17sb0yht5wrdetr"></staylift-widget>
+  <script type="module" src="https://unpkg.com/@staylift-tech/conv-widget"></script>
 </body>
 </html>
