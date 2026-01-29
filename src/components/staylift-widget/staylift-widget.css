@@ -307,6 +307,84 @@
   color: var(--sl-muted);
 }
 
+/* ============ MODE TOGGLE ============ */
+
+.sl-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 4px;
+  background: var(--sl-surface);
+  border-radius: 10px;
+}
+
+.sl-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sl-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sl-mode-btn:hover {
+  color: var(--sl-text);
+}
+
+.sl-mode-btn--active {
+  background: var(--sl-bg);
+  color: var(--sl-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* ============ VOICE CONTROLS ============ */
+
+.sl-voice-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.sl-voice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  background: var(--sl-primary);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sl-voice-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.sl-voice-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sl-voice-btn--end {
+  background: var(--sl-danger);
+}
+
+.sl-voice-btn--end:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
 /* ============ MESSAGES ============ */
 
 .sl-msg {
@@ -395,10 +473,14 @@
 
 .sl-branding {
   text-align: center;
-  margin-bottom: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
 }
 
 .sl-branding a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   color: var(--sl-muted);
   text-decoration: none;
@@ -408,6 +490,13 @@
 
 .sl-branding a:hover {
   opacity: 1;
+}
+
+.sl-branding-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: cover;
 }
 
 .sl-input-row {

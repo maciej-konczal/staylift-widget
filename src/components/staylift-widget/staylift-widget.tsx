@@ -1,11 +1,12 @@
 import { Component, Prop, State, h, Event, EventEmitter, Method, Element } from '@stencil/core';
-import { Conversation } from '@elevenlabs/client';
+import { TextConversation, VoiceConversation } from '@elevenlabs/client';
 
 export type WidgetStatus = 'disconnected' | 'connecting' | 'connected' | 'disconnecting';
 export type WidgetPositionX = 'left' | 'center' | 'right';
 export type WidgetPositionY = 'top' | 'bottom';
 export type WidgetVariant = 'floating' | 'inline';
 export type WidgetMode = 'light' | 'dark';
+export type ConversationMode = 'text' | 'voice';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -47,6 +48,7 @@ export class StayliftWidget {
   @State() messages: ChatMessage[] = [];
   @State() inputText: string = '';
   @State() copiedIndex: number | null = null;
+  @State() selectedMode: ConversationMode = 'text';
 
   // ============ EVENTS ============
   @Event() conversationStarted: EventEmitter<void>;
@@ -56,7 +58,7 @@ export class StayliftWidget {
   @Event() messageReceived: EventEmitter<ChatMessage>;
 
   // ============ PRIVATE ============
-  private conversation: Conversation | null = null;
+  private conversation: TextConversation | VoiceConversation | null = null;
   private volumeInterval: ReturnType<typeof setInterval> | null = null;
   private messagesContainer: HTMLDivElement | null = null;
   private mediaStream: MediaStream | null = null;
@@ -148,7 +150,10 @@ export class StayliftWidget {
         rejectConnected(new Error('Connection timeout'));
       }, CONNECTION_TIMEOUT);
 
-      this.conversation = await Conversation.startSession({
+      // Use TextConversation for text-only mode (no mic access), VoiceConversation for voice
+      const ConversationClass = textOnly ? TextConversation : VoiceConversation;
+
+      this.conversation = await ConversationClass.startSession({
         agentId: this.agentId,
         connectionType: textOnly ? 'websocket' : 'webrtc',
         overrides: {
@@ -248,7 +253,7 @@ export class StayliftWidget {
     const msg = text || this.inputText.trim();
     if (!msg) return;
 
-    // If disconnected, start text-only session
+    // If disconnected, start session based on selected mode
     if (this.status === 'disconnected') {
       const userMessage: ChatMessage = { role: 'user', content: msg };
       this.inputText = '';
@@ -256,8 +261,9 @@ export class StayliftWidget {
       this.messages = [userMessage];
       this.scrollToBottom();
 
+      const textOnly = this.selectedMode === 'text';
       try {
-        await this.handleStartConversation(true, true);
+        await this.handleStartConversation(textOnly, true);
         // Message will be sent in onConnect callback
       } catch {
         this.pendingMessage = null;
@@ -356,6 +362,10 @@ export class StayliftWidget {
         termsWarning: 'If you do not wish to have your conversations recorded, please refrain from using this service.',
         termsAgree: 'Agree',
         termsDecline: 'Decline',
+        modeText: 'Text',
+        modeVoice: 'Voice',
+        startVoice: 'Start Voice Call',
+        endVoice: 'End Call',
       },
       pl: {
         microphoneError: 'Proszę włączyć uprawnienia mikrofonu.',
@@ -375,6 +385,10 @@ export class StayliftWidget {
         termsWarning: 'Jeśli nie chcesz, aby Twoje rozmowy były nagrywane, prosimy o nieużywanie tej usługi.',
         termsAgree: 'Zgadzam się',
         termsDecline: 'Odrzuć',
+        modeText: 'Tekst',
+        modeVoice: 'Głos',
+        startVoice: 'Rozpocznij rozmowę',
+        endVoice: 'Zakończ',
       },
       de: {
         microphoneError: 'Bitte aktivieren Sie die Mikrofonberechtigung in Ihrem Browser.',
@@ -394,6 +408,10 @@ export class StayliftWidget {
         termsWarning: 'Wenn Sie nicht möchten, dass Ihre Gespräche aufgezeichnet werden, verwenden Sie diesen Dienst bitte nicht.',
         termsAgree: 'Zustimmen',
         termsDecline: 'Ablehnen',
+        modeText: 'Text',
+        modeVoice: 'Stimme',
+        startVoice: 'Sprachanruf starten',
+        endVoice: 'Beenden',
       },
     };
     return translations[this.language]?.[key] || translations['en'][key] || key;
@@ -615,69 +633,109 @@ export class StayliftWidget {
   }
 
   private renderFooter(isCallActive: boolean, isTransitioning: boolean) {
+    const isDisconnected = this.status === 'disconnected';
+    const isConnectedText = this.status === 'connected' && this.isTextOnlyMode;
+    const showTextInput = this.selectedMode === 'text' || isConnectedText;
+
     return (
       <div class="sl-footer">
+        {/* Mode toggle - only show when disconnected */}
+        {isDisconnected && (
+          <div class="sl-mode-toggle">
+            <button
+              class={`sl-mode-btn ${this.selectedMode === 'text' ? 'sl-mode-btn--active' : ''}`}
+              onClick={() => this.selectedMode = 'text'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              {this.t('modeText')}
+            </button>
+            <button
+              class={`sl-mode-btn ${this.selectedMode === 'voice' ? 'sl-mode-btn--active' : ''}`}
+              onClick={() => this.selectedMode = 'voice'}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+              {this.t('modeVoice')}
+            </button>
+          </div>
+        )}
+
+        {/* Text input row - show for text mode or when connected in text mode */}
+        {showTextInput && (
+          <div class="sl-input-row">
+            <input
+              type="text"
+              class="sl-input"
+              placeholder={this.t('placeholder')}
+              value={this.inputText}
+              onInput={this.handleInputChange}
+              onKeyDown={this.handleInputKeyDown}
+              disabled={isTransitioning}
+            />
+            <button
+              class="sl-btn"
+              onClick={() => this.handleSendText()}
+              disabled={!this.inputText.trim() || isTransitioning}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Voice controls - show for voice mode */}
+        {this.selectedMode === 'voice' && !showTextInput && (
+          <div class="sl-voice-controls">
+            {!isCallActive ? (
+              <button
+                class="sl-voice-btn"
+                onClick={() => this.handleVoiceButton()}
+                disabled={isTransitioning}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+                {isTransitioning ? this.t('connecting') : this.t('startVoice')}
+              </button>
+            ) : (
+              <button
+                class="sl-voice-btn sl-voice-btn--end"
+                onClick={() => this.handleVoiceButton()}
+                disabled={isTransitioning}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path>
+                  <line x1="22" y1="2" x2="2" y2="22"></line>
+                </svg>
+                {this.t('endVoice')}
+              </button>
+            )}
+          </div>
+        )}
+
         {this.showBranding && (
           <div class="sl-branding">
             <a href="https://staylift.com" target="_blank" rel="noopener noreferrer">
+              <img
+                src="data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8IAEQgAIAAgAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAMCBAEFAAYHCAkKC//EAMMQAAEDAwIEAwQGBAcGBAgGcwECAAMRBBIhBTETIhAGQVEyFGFxIweBIJFCFaFSM7EkYjAWwXLRQ5I0ggjhU0AlYxc18JNzolBEsoPxJlQ2ZJR0wmDShKMYcOInRTdls1V1pJXDhfLTRnaA40dWZrQJChkaKCkqODk6SElKV1hZWmdoaWp3eHl6hoeIiYqQlpeYmZqgpaanqKmqsLW2t7i5usDExcbHyMnK0NTV1tfY2drg5OXm5+jp6vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAQIAAwQFBgcICQoL/8QAwxEAAgIBAwMDAgMFAgUCBASHAQACEQMQEiEEIDFBEwUwIjJRFEAGMyNhQhVxUjSBUCSRoUOxFgdiNVPw0SVgwUThcvEXgmM2cCZFVJInotIICQoYGRooKSo3ODk6RkdISUpVVldYWVpkZWZnaGlqc3R1dnd4eXqAg4SFhoeIiYqQk5SVlpeYmZqgo6SlpqeoqaqwsrO0tba3uLm6wMLDxMXGx8jJytDT1NXW19jZ2uDi4+Tl5ufo6ery8/T19vf4+fr/2wBDAAICAgICAgMCAgMFAwMDBQYFBQUFBggGBgYGBggKCAgICAgICgoKCgoKCgoMDAwMDAwODg4ODg8PDw8PDw8PDw//2wBDAQICAgQEBAcEBAcQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/2gAMAwEAAhEDEQAAAfiPo6T9gTw/lbxH1R8xAWn0XwXsuXwv2J+cvsHnGXj/AP/aAAgBAQABBQJ2O0btujuvDXiGygZS/B6bCDwr9Yvii93+QRKL5RL8C7HvO8yb3t22f0cO3xxpg2+r22+3Pbre83K/u0XUoD//2gAIAQMRAT8BwnczyRDk/enDhl9/j+j8l+8kutyx9kUA/wD/2gAIAQIRAT8B0OVnO3//2gAIAQEABj8CajttnLc48eWgqo1XV5t08MMftLWggDvtxssUw8hKlH+VTrr9rTFZoWnZ41URJQhMyx+avw8nw7SWKbmWDaf+BASqiVfyR8S7mwljSi1jhISnyTQdNPtfB8GLe1uVxRjXFLwurhcqR5E6dv/EADMQAQADAAICAgICAwEBAAACCwERACExQVFhcYGRobHB8NEQ4fEgMEBQYHCAkKCwwNDg/9oACAEBAAE/IZsYHlgL2hFFykgNxq/8i4rZQAQHMl53M1Hu+FPRCE0H7+OCoZU37nAvVx5U656pS9EIT8wQj3YdyrMaSOzIAl5fmjVxMtl8cUFL/9oADAMBAAIRAxEAABD2kov/xAAzEQEBAQADAAECBQUBAQABAQkBABEhMRBBUWEgcfCRgaGx0cHh8TBAUGBwgJCgsMDQ4P/aAAgBAxEBPxDT3M5sJdI+Ma/bs4t0zZy8v7fT4v/aAAgBAhEBPxBPA2RcX//aAAgBAQABPxCXMUdNxPzQSDHSzRnYYmQIwJUDyoU5qBhvVIgVuSPBo61iI8V5sIdq5DxIPbJQrnR+qCA5rryHQleAAiIk2UhJuwnSp6JKa/KjgYm/NRmPignYSnymSrtfVNewxg4eEjzFnxEX/9k="
+                alt="Staylift"
+                class="sl-branding-logo"
+              />
               {this.t('poweredBy')}
             </a>
           </div>
         )}
-        <div class="sl-input-row">
-          <input
-            type="text"
-            class="sl-input"
-            placeholder={this.t('placeholder')}
-            value={this.inputText}
-            onInput={this.handleInputChange}
-            onKeyDown={this.handleInputKeyDown}
-            disabled={isTransitioning}
-          />
-          
-          {/* Send button */}
-          <button 
-            class="sl-btn"
-            onClick={() => this.handleSendText()}
-            disabled={!this.inputText.trim() || isTransitioning}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
-          
-          {/* Voice button */}
-          {!isCallActive ? (
-            <button 
-              class="sl-btn"
-              onClick={() => this.handleVoiceButton()}
-              disabled={isTransitioning}
-            >
-              {/* AudioLines icon */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M2 10v3"></path>
-                <path d="M6 6v11"></path>
-                <path d="M10 3v18"></path>
-                <path d="M14 8v7"></path>
-                <path d="M18 5v13"></path>
-                <path d="M22 10v3"></path>
-              </svg>
-            </button>
-          ) : (
-            <button 
-              class="sl-btn sl-btn--end"
-              onClick={() => this.handleVoiceButton()}
-              disabled={isTransitioning}
-            >
-              {/* PhoneOff icon */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path>
-                <line x1="22" y1="2" x2="2" y2="22"></line>
-              </svg>
-            </button>
-          )}
-        </div>
       </div>
     );
   }
