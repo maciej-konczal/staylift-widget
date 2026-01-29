@@ -289,9 +289,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   text-align: center;
   gap: 12px;
+  padding-top: 24px;
 }
 
 .sl-empty-title {
@@ -427,15 +428,6 @@
   background: var(--sl-surface);
   color: var(--sl-text);
   border-bottom-left-radius: 4px;
-}
-
-.sl-msg-orb {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--sl-border);
-  overflow: hidden;
-  flex-shrink: 0;
 }
 
 .sl-msg-actions {

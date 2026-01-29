@@ -157,8 +157,11 @@ export class StayliftWidget {
         agentId: this.agentId,
         connectionType: textOnly ? 'websocket' : 'webrtc',
         overrides: {
-          conversation: { textOnly },
-          agent: { firstMessage: textOnly ? '' : undefined },
+          conversation: {
+            textOnly,
+            // Enable streaming text responses for text mode
+            client_events: textOnly ? ['agent_response', 'agent_chat_response_part', 'user_transcript'] : undefined,
+          } as any,
         },
         onStatusChange: (statusEvent: { status: string }) => {
           const newStatus = statusEvent.status as WidgetStatus;
@@ -289,6 +292,14 @@ export class StayliftWidget {
     }
   }
 
+  private async handleTextButton(): Promise<void> {
+    if (this.status === 'disconnected' || this.status === null) {
+      await this.handleStartConversation(true);
+    } else if (this.status === 'connected') {
+      await this.handleEndConversation();
+    }
+  }
+
   private handleInputKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -366,6 +377,8 @@ export class StayliftWidget {
         modeVoice: 'Voice',
         startVoice: 'Start Voice Call',
         endVoice: 'End Call',
+        startText: 'Start Text Chat',
+        endText: 'End Chat',
       },
       pl: {
         microphoneError: 'Proszę włączyć uprawnienia mikrofonu.',
@@ -387,8 +400,10 @@ export class StayliftWidget {
         termsDecline: 'Odrzuć',
         modeText: 'Tekst',
         modeVoice: 'Głos',
-        startVoice: 'Rozpocznij rozmowę',
+        startVoice: 'Rozpocznij rozmowę głosową',
         endVoice: 'Zakończ',
+        startText: 'Rozpocznij czat',
+        endText: 'Zakończ czat',
       },
       de: {
         microphoneError: 'Bitte aktivieren Sie die Mikrofonberechtigung in Ihrem Browser.',
@@ -412,6 +427,8 @@ export class StayliftWidget {
         modeVoice: 'Stimme',
         startVoice: 'Sprachanruf starten',
         endVoice: 'Beenden',
+        startText: 'Text-Chat starten',
+        endText: 'Chat beenden',
       },
     };
     return translations[this.language]?.[key] || translations['en'][key] || key;
@@ -467,7 +484,7 @@ export class StayliftWidget {
     if (this.variant === 'inline') {
       return (
         <div class="sl-widget sl-inline" style={cssVars}>
-          {this.renderCard(isCallActive, isTransitioning)}
+          {this.renderCard(isTransitioning)}
         </div>
       );
     }
@@ -476,7 +493,7 @@ export class StayliftWidget {
       <div class={`sl-widget sl-floating ${this.getPositionClasses()}`} style={cssVars}>
         {this.isExpanded ? (
           <div class="sl-card">
-            {this.renderCard(isCallActive, isTransitioning)}
+            {this.renderCard(isTransitioning)}
           </div>
         ) : (
           <div class="sl-fab-pill">
@@ -505,14 +522,14 @@ export class StayliftWidget {
     );
   }
 
-  private renderCard(isCallActive: boolean, isTransitioning: boolean) {
+  private renderCard(isTransitioning: boolean) {
     if (!this.termsAccepted) {
       return this.renderTerms();
     }
     return [
       this.renderHeader(isTransitioning),
       this.renderContent(),
-      this.renderFooter(isCallActive, isTransitioning),
+      this.renderFooter(isTransitioning),
     ];
   }
 
@@ -603,11 +620,6 @@ export class StayliftWidget {
             <div class={`sl-msg sl-msg--${message.role}`} key={index}>
               <div class="sl-msg-row">
                 <div class="sl-msg-bubble">{message.content}</div>
-                {message.role === 'assistant' && (
-                  <div class="sl-msg-orb">
-                    <staylift-orb size={24} primaryColor={this.primaryColor} isActive={false} />
-                  </div>
-                )}
               </div>
               {message.role === 'assistant' && (
                 <div class="sl-msg-actions">
@@ -632,10 +644,12 @@ export class StayliftWidget {
     );
   }
 
-  private renderFooter(isCallActive: boolean, isTransitioning: boolean) {
+  private renderFooter(isTransitioning: boolean) {
     const isDisconnected = this.status === 'disconnected';
     const isConnectedText = this.status === 'connected' && this.isTextOnlyMode;
-    const showTextInput = this.selectedMode === 'text' || isConnectedText;
+    const isConnectedVoice = this.status === 'connected' && !this.isTextOnlyMode;
+    // Only show text input when connected in text mode
+    const showTextInput = isConnectedText;
 
     return (
       <div class="sl-footer">
@@ -666,9 +680,20 @@ export class StayliftWidget {
           </div>
         )}
 
-        {/* Text input row - show for text mode or when connected in text mode */}
+        {/* Text input row - show when connected in text mode */}
         {showTextInput && (
           <div class="sl-input-row">
+            <button
+              class="sl-btn sl-btn--end"
+              onClick={() => this.handleTextButton()}
+              disabled={isTransitioning}
+              title={this.t('endText')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
             <input
               type="text"
               class="sl-input"
@@ -691,36 +716,55 @@ export class StayliftWidget {
           </div>
         )}
 
-        {/* Voice controls - show for voice mode */}
-        {this.selectedMode === 'voice' && !showTextInput && (
+        {/* Text controls - show "Start Text Chat" when disconnected and text mode selected */}
+        {this.selectedMode === 'text' && isDisconnected && (
           <div class="sl-voice-controls">
-            {!isCallActive ? (
-              <button
-                class="sl-voice-btn"
-                onClick={() => this.handleVoiceButton()}
-                disabled={isTransitioning}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                  <line x1="12" y1="19" x2="12" y2="23"></line>
-                  <line x1="8" y1="23" x2="16" y2="23"></line>
-                </svg>
-                {isTransitioning ? this.t('connecting') : this.t('startVoice')}
-              </button>
-            ) : (
-              <button
-                class="sl-voice-btn sl-voice-btn--end"
-                onClick={() => this.handleVoiceButton()}
-                disabled={isTransitioning}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path>
-                  <line x1="22" y1="2" x2="2" y2="22"></line>
-                </svg>
-                {this.t('endVoice')}
-              </button>
-            )}
+            <button
+              class="sl-voice-btn"
+              onClick={() => this.handleTextButton()}
+              disabled={isTransitioning}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              {isTransitioning ? this.t('connecting') : this.t('startText')}
+            </button>
+          </div>
+        )}
+
+        {/* Voice controls - show for voice mode when disconnected or connected */}
+        {this.selectedMode === 'voice' && isDisconnected && (
+          <div class="sl-voice-controls">
+            <button
+              class="sl-voice-btn"
+              onClick={() => this.handleVoiceButton()}
+              disabled={isTransitioning}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+              {isTransitioning ? this.t('connecting') : this.t('startVoice')}
+            </button>
+          </div>
+        )}
+
+        {/* End call button - show when connected in voice mode */}
+        {isConnectedVoice && (
+          <div class="sl-voice-controls">
+            <button
+              class="sl-voice-btn sl-voice-btn--end"
+              onClick={() => this.handleVoiceButton()}
+              disabled={isTransitioning}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path>
+                <line x1="22" y1="2" x2="2" y2="22"></line>
+              </svg>
+              {this.t('endVoice')}
+            </button>
           </div>
         )}
 
