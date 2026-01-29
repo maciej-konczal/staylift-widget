@@ -28,13 +28,13 @@
 }
 
 /* Horizontal positioning */
-.sl-x-left { left: 20px; right: auto; }
+.sl-x-left { left: 40px; right: auto; }
 .sl-x-center { left: 50%; right: auto; transform: translateX(-50%); }
-.sl-x-right { right: 20px; left: auto; }
+.sl-x-right { right: 40px; left: auto; }
 
 /* Vertical positioning */
-.sl-y-top { top: 20px; bottom: auto; }
-.sl-y-bottom { bottom: 20px; top: auto; }
+.sl-y-top { top: 40px; bottom: auto; }
+.sl-y-bottom { bottom: 40px; top: auto; }
 
 /* Old circular FAB (kept for reference) */
 .sl-fab {
@@ -121,8 +121,8 @@
 /* ============ CARD ============ */
 
 .sl-card {
-  width: 400px;
-  height: 380px;
+  width: 440px;
+  height: 440px;
   max-height: calc(100vh - 100px);
   background: var(--sl-bg);
   border-radius: 16px;
@@ -136,8 +136,8 @@
 
 .sl-inline {
   width: 100%;
-  max-width: 500px;
-  height: 380px;
+  max-width: 540px;
+  height: 440px;
   background: var(--sl-bg);
   border-radius: 16px;
   border: 1px solid var(--sl-border);
