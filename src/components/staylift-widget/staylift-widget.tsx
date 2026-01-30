@@ -394,10 +394,10 @@ export class StayliftWidget {
         talkOrType: 'Mów lub pisz',
         poweredBy: 'Powered by Staylift',
         termsTitle: 'Regulamin',
-        termsText: 'Klikając „Zgadzam się" i za każdym razem, gdy wchodzę w interakcję z tym agentem AI, wyrażam zgodę na nagrywanie, przechowywanie i udostępnianie moich komunikatów zewnętrznym dostawcom usług, zgodnie z Polityką Prywatności.',
-        termsWarning: 'Jeśli nie chcesz, aby Twoje rozmowy były nagrywane, prosimy o nieużywanie tej usługi.',
-        termsAgree: 'Zgadzam się',
-        termsDecline: 'Odrzuć',
+        termsText: 'Klikając „Akceptuję” i za każdym razem, gdy wchodzę w interakcję z tym agentem AI, wyrażam zgodę na nagrywanie, przechowywanie i udostępnianie mojej komunikacji zewnętrznym dostawcom usług, zgodnie z opisem w Polityce Prywatności.',
+        termsWarning: 'Jeśli nie życzysz sobie nagrywania swoich rozmów, prosimy o powstrzymanie się od korzystania z tej usługi.',
+        termsAgree: 'Akceptuję',
+        termsDecline: 'Odrzucam',
         modeText: 'Tekst',
         modeVoice: 'Głos',
         startVoice: 'Rozpocznij rozmowę głosową',
@@ -773,7 +773,7 @@ export class StayliftWidget {
 
         {this.showBranding && (
           <div class="sl-branding">
-            <a href="https://staylift.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://stayliftnow.com" target="_blank" rel="noopener noreferrer">
               <img
                 src="data:image/png;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAIKADAAQAAAABAAAAIAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8IAEQgAIAAgAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAMCBAEFAAYHCAkKC//EAMMQAAEDAwIEAwQGBAcGBAgGcwECAAMRBBIhBTETIhAGQVEyFGFxIweBIJFCFaFSM7EkYjAWwXLRQ5I0ggjhU0AlYxc18JNzolBEsoPxJlQ2ZJR0wmDShKMYcOInRTdls1V1pJXDhfLTRnaA40dWZrQJChkaKCkqODk6SElKV1hZWmdoaWp3eHl6hoeIiYqQlpeYmZqgpaanqKmqsLW2t7i5usDExcbHyMnK0NTV1tfY2drg5OXm5+jp6vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAQIAAwQFBgcICQoL/8QAwxEAAgIBAwMDAgMFAgUCBASHAQACEQMQEiEEIDFBEwUwIjJRFEAGMyNhQhVxUjSBUCSRoUOxFgdiNVPw0SVgwUThcvEXgmM2cCZFVJInotIICQoYGRooKSo3ODk6RkdISUpVVldYWVpkZWZnaGlqc3R1dnd4eXqAg4SFhoeIiYqQk5SVlpeYmZqgo6SlpqeoqaqwsrO0tba3uLm6wMLDxMXGx8jJytDT1NXW19jZ2uDi4+Tl5ufo6ery8/T19vf4+fr/2wBDAAICAgICAgMCAgMFAwMDBQYFBQUFBggGBgYGBggKCAgICAgICgoKCgoKCgoMDAwMDAwODg4ODg8PDw8PDw8PDw//2wBDAQICAgQEBAcEBAcQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/2gAMAwEAAhEDEQAAAfiPo6T9gTw/lbxH1R8xAWn0XwXsuXwv2J+cvsHnGXj/AP/aAAgBAQABBQJ2O0btujuvDXiGygZS/B6bCDwr9Yvii93+QRKL5RL8C7HvO8yb3t22f0cO3xxpg2+r22+3Pbre83K/u0XUoD//2gAIAQMRAT8BwnczyRDk/enDhl9/j+j8l+8kutyx9kUA/wD/2gAIAQIRAT8B0OVnO3//2gAIAQEABj8CajttnLc48eWgqo1XV5t08MMftLWggDvtxssUw8hKlH+VTrr9rTFZoWnZ41URJQhMyx+avw8nw7SWKbmWDaf+BASqiVfyR8S7mwljSi1jhISnyTQdNPtfB8GLe1uVxRjXFLwurhcqR5E6dv/EADMQAQADAAICAgICAwEBAAACCwERACExQVFhcYGRobHB8NEQ4fEgMEBQYHCAkKCwwNDg/9oACAEBAAE/IZsYHlgL2hFFykgNxq/8i4rZQAQHMl53M1Hu+FPRCE0H7+OCoZU37nAvVx5U656pS9EIT8wQj3YdyrMaSOzIAl5fmjVxMtl8cUFL/9oADAMBAAIRAxEAABD2kov/xAAzEQEBAQADAAECBQUBAQABAQkBABEhMRBBUWEgcfCRgaGx0cHh8TBAUGBwgJCgsMDQ4P/aAAgBAxEBPxDT3M5sJdI+Ma/bs4t0zZy8v7fT4v/aAAgBAhEBPxBPA2RcX//aAAgBAQABPxCXMUdNxPzQSDHSzRnYYmQIwJUDyoU5qBhvVIgVuSPBo61iI8V5sIdq5DxIPbJQrnR+qCA5rryHQleAAiIk2UhJuwnSp6JKa/KjgYm/NRmPignYSnymSrtfVNewxg4eEjzFnxEX/9k="
                 alt="Staylift"
