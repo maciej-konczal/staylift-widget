@@ -188,6 +188,7 @@
   <span class="attr">agent-id</span>=<span class="str">"your-elevenlabs-agent-id"</span>
   <span class="attr">brand-name</span>=<span class="str">"Your Hotel Name"</span>
   <span class="attr">primary-color</span>=<span class="str">"#6366f1"</span>
+  <span class="attr">language</span>=<span class="str">"en"</span>  <span style="color:#71717a">// en (default), pl, de</span>
 <span class="tag">&gt;&lt;/staylift-widget&gt;</span>
 
 <span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="str">"https://unpkg.com/@staylift/voice-widget"</span><span class="tag">&gt;&lt;/script&gt;</span></code></pre>
@@ -206,7 +207,7 @@
   </div>
 
   <!-- Floating Widget Demo -->
-  <staylift-widget
+  <!-- <staylift-widget
     agent-id="agent_0001kfetq638f17sb0yht5wrdetr"
     brand-name="Hotel Concierge"
     position-x="right"
@@ -216,6 +217,19 @@
     avatar-url="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face"
     fab-prompt="Need assistance?"
     fab-button-text="Chat now"
+  ></staylift-widget> -->
+
+  <staylift-widget
+    agent-id="agent_7701ke555bnjedaacb1w0x9q3c5p"
+    brand-name="Za górami za lasami"
+    position-x="right"
+    position-y="bottom"
+    mode="light"
+    language="pl"
+    primary-color="#339966"
+    avatar-url="https://pxrlphrhicooynandlcc.supabase.co/storage/v1/object/public/logos/zgzl-logo-2.png"
+    fab-prompt="Planujesz u nas pobyt?"
+    fab-button-text="Porozmawiaj z wirtualną recepcją"
   ></staylift-widget>
 
   <script>
