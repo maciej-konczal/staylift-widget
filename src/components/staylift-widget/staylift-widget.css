@@ -295,6 +295,14 @@
   gap: 12px;
 }
 
+.sl-empty-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--sl-border);
+}
+
 .sl-empty-title {
   margin: 0;
   font-size: 15px;

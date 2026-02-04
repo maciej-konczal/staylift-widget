@@ -610,7 +610,11 @@ export class StayliftWidget {
       <div class="sl-content" ref={(el) => this.messagesContainer = el ?? null}>
         {this.messages.length === 0 ? (
           <div class="sl-empty">
-            <staylift-orb size={48} primaryColor={this.primaryColor} isActive={false} />
+            {this.avatarUrl ? (
+              <img src={this.avatarUrl} alt="" class="sl-empty-avatar" />
+            ) : (
+              <staylift-orb size={48} primaryColor={this.primaryColor} isActive={false} />
+            )}
             <h3 class="sl-empty-title">
               {isConnecting ? this.t('starting') : isConnected ? this.t('talkOrType') : this.t('emptyTitle')}
             </h3>
