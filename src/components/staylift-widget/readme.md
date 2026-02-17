@@ -21,7 +21,9 @@
 | `positionY`            | `position-y`      |             | `"bottom" \| "top"`             | `'bottom'`            |
 | `primaryColor`         | `primary-color`   |             | `string`                        | `'#6366f1'`           |
 | `showBranding`         | `show-branding`   |             | `boolean`                       | `true`                |
+| `textAgentId`          | `text-agent-id`   |             | `string \| undefined`           | `undefined`           |
 | `variant`              | `variant`         |             | `"floating" \| "inline"`        | `'floating'`          |
+| `voiceAgentId`         | `voice-agent-id`  |             | `string \| undefined`           | `undefined`           |
 
 
 ## Events

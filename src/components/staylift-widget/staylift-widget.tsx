@@ -23,6 +23,8 @@ export class StayliftWidget {
 
   // ============ PROPS ============
   @Prop() agentId!: string;
+  @Prop() textAgentId?: string;  // Optional: separate agent for text mode
+  @Prop() voiceAgentId?: string; // Optional: separate agent for voice mode
   @Prop() positionX: WidgetPositionX = 'right';
   @Prop() positionY: WidgetPositionY = 'bottom';
   @Prop() variant: WidgetVariant = 'floating';
@@ -153,8 +155,13 @@ export class StayliftWidget {
       // Use TextConversation for text-only mode (no mic access), VoiceConversation for voice
       const ConversationClass = textOnly ? TextConversation : VoiceConversation;
 
+      // Use mode-specific agent ID if provided, otherwise fall back to main agentId
+      const effectiveAgentId = textOnly
+        ? (this.textAgentId || this.agentId)
+        : (this.voiceAgentId || this.agentId);
+
       this.conversation = await ConversationClass.startSession({
-        agentId: this.agentId,
+        agentId: effectiveAgentId,
         connectionType: textOnly ? 'websocket' : 'webrtc',
         overrides: {
           conversation: {

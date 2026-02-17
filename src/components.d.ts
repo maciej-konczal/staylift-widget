@@ -77,10 +77,12 @@ export namespace Components {
          */
         "showBranding": boolean;
         "startConversation": (textOnly?: boolean) => Promise<void>;
+        "textAgentId"?: string;
         /**
           * @default 'floating'
          */
         "variant": WidgetVariant;
+        "voiceAgentId"?: string;
     }
 }
 export interface StayliftWidgetCustomEvent<T> extends CustomEvent<T> {
@@ -191,10 +193,12 @@ declare namespace LocalJSX {
           * @default true
          */
         "showBranding"?: boolean;
+        "textAgentId"?: string;
         /**
           * @default 'floating'
          */
         "variant"?: WidgetVariant;
+        "voiceAgentId"?: string;
     }
     interface IntrinsicElements {
         "staylift-orb": StayliftOrb;
