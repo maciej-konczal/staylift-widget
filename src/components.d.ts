@@ -60,6 +60,10 @@ export namespace Components {
          */
         "mode": WidgetMode;
         /**
+          * @default false
+         */
+        "onlyText": boolean;
+        /**
           * @default 'right'
          */
         "positionX": WidgetPositionX;
@@ -177,6 +181,10 @@ declare namespace LocalJSX {
         "onMessageReceived"?: (event: StayliftWidgetCustomEvent<ChatMessage>) => void;
         "onStatusChanged"?: (event: StayliftWidgetCustomEvent<WidgetStatus>) => void;
         "onWidgetError"?: (event: StayliftWidgetCustomEvent<{ message: string; code?: string }>) => void;
+        /**
+          * @default false
+         */
+        "onlyText"?: boolean;
         /**
           * @default 'right'
          */

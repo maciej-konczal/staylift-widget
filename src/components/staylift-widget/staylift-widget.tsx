@@ -34,6 +34,7 @@ export class StayliftWidget {
   @Prop() language: string = 'en';
   @Prop() autoExpand: boolean = false;
   @Prop() showBranding: boolean = true;
+  @Prop() onlyText: boolean = false;
 
   // FAB customization
   @Prop() avatarUrl?: string;
@@ -69,6 +70,7 @@ export class StayliftWidget {
   // ============ LIFECYCLE ============
   componentWillLoad() {
     if (this.autoExpand) this.isExpanded = true;
+    if (this.onlyText) this.selectedMode = 'text';
   }
 
   disconnectedCallback() {
@@ -370,6 +372,7 @@ export class StayliftWidget {
         placeholder: 'Type a message...',
         emptyTitle: 'Start a conversation',
         emptyDesc: 'Type a message or tap the voice button',
+        emptyDescTextOnly: 'Type a message to get started',
         starting: 'Starting conversation',
         connecting: 'Connecting...',
         ready: 'Ready to chat',
@@ -395,6 +398,7 @@ export class StayliftWidget {
         placeholder: 'Napisz wiadomość...',
         emptyTitle: 'Rozpocznij rozmowę',
         emptyDesc: 'Napisz wiadomość lub naciśnij przycisk głosowy',
+        emptyDescTextOnly: 'Napisz wiadomość, aby rozpocząć',
         starting: 'Rozpoczynanie rozmowy',
         connecting: 'Łączenie...',
         ready: 'Gotowe do czatu',
@@ -420,6 +424,7 @@ export class StayliftWidget {
         placeholder: 'Nachricht eingeben...',
         emptyTitle: 'Gespräch starten',
         emptyDesc: 'Nachricht eingeben oder Voice-Button drücken',
+        emptyDescTextOnly: 'Schreiben Sie eine Nachricht, um zu beginnen',
         starting: 'Gespräch wird gestartet',
         connecting: 'Verbindung wird hergestellt...',
         ready: 'Bereit zum Chatten',
@@ -626,7 +631,7 @@ export class StayliftWidget {
               {isConnecting ? this.t('starting') : isConnected ? this.t('talkOrType') : this.t('emptyTitle')}
             </h3>
             <p class="sl-empty-desc">
-              {isConnecting ? this.t('connecting') : isConnected ? this.t('ready') : this.t('emptyDesc')}
+              {isConnecting ? this.t('connecting') : isConnected ? this.t('ready') : this.t(this.onlyText ? 'emptyDescTextOnly' : 'emptyDesc')}
             </p>
           </div>
         ) : (
@@ -667,8 +672,8 @@ export class StayliftWidget {
 
     return (
       <div class="sl-footer">
-        {/* Mode toggle - only show when disconnected */}
-        {isDisconnected && (
+        {/* Mode toggle - only show when disconnected and not only-text */}
+        {isDisconnected && !this.onlyText && (
           <div class="sl-mode-toggle">
             <button
               class={`sl-mode-btn ${this.selectedMode === 'text' ? 'sl-mode-btn--active' : ''}`}
