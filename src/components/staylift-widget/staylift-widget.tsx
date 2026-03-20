@@ -8,9 +8,17 @@ export type WidgetVariant = 'floating' | 'inline';
 export type WidgetMode = 'light' | 'dark';
 export type ConversationMode = 'text' | 'voice';
 
+interface OfferCard {
+  url: string;
+  photoUrl?: string;
+  title?: string;
+  description?: string;
+}
+
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  offers?: OfferCard[];
 }
 
 // Blocked agent IDs (unpaid/inactive subscriptions)
@@ -59,6 +67,10 @@ export class StayliftWidget {
   @State() inputText: string = '';
   @State() copiedIndex: number | null = null;
   @State() selectedMode: ConversationMode = 'text';
+  @State() offerIndexes: Record<number, number> = {};
+  @State() pinnedOffers: OfferCard[] | null = null;
+  private pinnedOfferIndex: number = 0;
+  private pinnedMessagesRemaining: number = 0;
 
   // ============ EVENTS ============
   @Event() conversationStarted: EventEmitter<void>;
@@ -172,6 +184,27 @@ export class StayliftWidget {
       this.conversation = await ConversationClass.startSession({
         agentId: effectiveAgentId,
         connectionType: textOnly ? 'websocket' : 'webrtc',
+        clientTools: {
+          showOffers: async (parameters: Record<string, unknown>) => {
+            console.log('[Staylift] showOffers client tool called with:', parameters);
+            const rawOffers = parameters.offers as Array<Record<string, unknown>> | undefined;
+            if (!rawOffers || !Array.isArray(rawOffers)) {
+              console.warn('[Staylift] showOffers: no offers array provided');
+              return 'No offers to display';
+            }
+            const offers: OfferCard[] = rawOffers.map(o => ({
+              url: String(o.url || ''),
+              photoUrl: o.photo_url ? String(o.photo_url) : undefined,
+              title: o.title ? String(o.title) : undefined,
+              description: o.description ? String(o.description) : undefined,
+            }));
+            this.pinnedOfferIndex = 0;
+            this.pinnedMessagesRemaining = 1;
+            this.pinnedOffers = offers;
+            this.scrollToBottom();
+            return `${offers.length} offer(s) displayed to user`;
+          },
+        },
         overrides: {
           conversation: {
             textOnly,
@@ -213,7 +246,27 @@ export class StayliftWidget {
               role: messageRole === 'user' ? 'user' : 'assistant',
               content: message.message,
             };
-            this.messages = [...this.messages, chatMessage];
+
+            if (this.pinnedOffers) {
+              if (this.pinnedMessagesRemaining > 0) {
+                // Still pinned — message goes above the carousel
+                this.messages = [...this.messages, chatMessage];
+                this.pinnedMessagesRemaining--;
+              } else {
+                // Unpin — flush offers into messages, then add new message below
+                const offersMessage: ChatMessage = {
+                  role: 'assistant',
+                  content: '',
+                  offers: this.pinnedOffers,
+                };
+                this.messages = [...this.messages, offersMessage, chatMessage];
+                this.pinnedOffers = null;
+                this.pinnedOfferIndex = 0;
+              }
+            } else {
+              this.messages = [...this.messages, chatMessage];
+            }
+
             this.messageReceived.emit(chatMessage);
             this.scrollToBottom();
           }
@@ -396,6 +449,7 @@ export class StayliftWidget {
         endVoice: 'End Call',
         startText: 'Start Text Chat',
         endText: 'End Chat',
+        viewOffer: 'View offer',
       },
       pl: {
         microphoneError: 'Proszę włączyć uprawnienia mikrofonu.',
@@ -422,6 +476,7 @@ export class StayliftWidget {
         endVoice: 'Zakończ',
         startText: 'Rozpocznij czat',
         endText: 'Zakończ czat',
+        viewOffer: 'Zobacz ofertę',
       },
       de: {
         microphoneError: 'Bitte aktivieren Sie die Mikrofonberechtigung in Ihrem Browser.',
@@ -447,6 +502,7 @@ export class StayliftWidget {
         startVoice: 'Sprachanruf starten',
         endVoice: 'Beenden',
         startText: 'Text-Chat starten',
+        viewOffer: 'Angebot ansehen',
         endText: 'Chat beenden',
       },
     };
@@ -624,13 +680,62 @@ export class StayliftWidget {
     );
   }
 
+  private renderOffersCarousel(offers: OfferCard[], key: string, currentIdx: number, onChangeIdx: (idx: number) => void) {
+    const offer = offers[currentIdx];
+    const total = offers.length;
+    return (
+      <div class="sl-offers-carousel" key={key}>
+        <a class="sl-offer-card" href={offer.url} target="_blank" rel="noopener noreferrer">
+          {offer.photoUrl && (
+            <img class="sl-offer-img" src={offer.photoUrl} alt={offer.title || ''} />
+          )}
+          <div class="sl-offer-body">
+            {offer.title && <span class="sl-offer-title">{offer.title}</span>}
+            {offer.description && <span class="sl-offer-desc">{offer.description}</span>}
+            <span class="sl-offer-link">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              {this.t('viewOffer')}
+            </span>
+          </div>
+        </a>
+        {total > 1 && (
+          <div class="sl-offers-nav">
+            <button
+              class="sl-offers-nav-btn"
+              disabled={currentIdx === 0}
+              onClick={(e) => { e.stopPropagation(); onChangeIdx(currentIdx - 1); }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <span class="sl-offers-counter">{currentIdx + 1} / {total}</span>
+            <button
+              class="sl-offers-nav-btn"
+              disabled={currentIdx === total - 1}
+              onClick={(e) => { e.stopPropagation(); onChangeIdx(currentIdx + 1); }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   private renderContent() {
     const isConnecting = this.status === 'connecting';
     const isConnected = this.status === 'connected';
 
     return (
       <div class="sl-content" ref={(el) => this.messagesContainer = el ?? null}>
-        {this.messages.length === 0 ? (
+        {this.messages.length === 0 && !this.pinnedOffers ? (
           <div class="sl-empty">
             {this.avatarUrl ? (
               <img src={this.avatarUrl} alt="" class="sl-empty-avatar" />
@@ -644,13 +749,22 @@ export class StayliftWidget {
               {isConnecting ? this.t('connecting') : isConnected ? this.t('ready') : this.t(this.onlyText ? 'emptyDescTextOnly' : 'emptyDesc')}
             </p>
           </div>
-        ) : (
+        ) : [
           this.messages.map((message, index) => (
             <div class={`sl-msg sl-msg--${message.role}`} key={index}>
-              <div class="sl-msg-row">
-                <div class="sl-msg-bubble">{message.content}</div>
-              </div>
-              {message.role === 'assistant' && (
+              {message.offers && message.offers.length > 0 ? (
+                this.renderOffersCarousel(
+                  message.offers,
+                  `msg-offers-${index}`,
+                  this.offerIndexes[index] || 0,
+                  (idx) => { this.offerIndexes = { ...this.offerIndexes, [index]: idx }; },
+                )
+              ) : (
+                <div class="sl-msg-row">
+                  <div class="sl-msg-bubble">{message.content}</div>
+                </div>
+              )}
+              {message.role === 'assistant' && !message.offers && (
                 <div class="sl-msg-actions">
                   <button class="sl-action" onClick={() => this.copyToClipboard(message.content, index)}>
                     {this.copiedIndex === index ? (
@@ -667,8 +781,19 @@ export class StayliftWidget {
                 </div>
               )}
             </div>
-          ))
-        )}
+          )),
+          // Pinned offers — always rendered at the bottom
+          this.pinnedOffers && (
+            <div class="sl-msg sl-msg--assistant sl-pinned-offers" key="pinned">
+              {this.renderOffersCarousel(
+                this.pinnedOffers,
+                'pinned-offers',
+                this.pinnedOfferIndex,
+                (idx) => { this.pinnedOfferIndex = idx; this.pinnedOffers = [...this.pinnedOffers!]; },
+              )}
+            </div>
+          ),
+        ]}
       </div>
     );
   }
