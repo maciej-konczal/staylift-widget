@@ -13,6 +13,12 @@ interface ChatMessage {
   content: string;
 }
 
+// Blocked agent IDs (unpaid/inactive subscriptions)
+const BLOCKED_AGENT_IDS: string[] = [
+  // Add agent IDs here to block them, e.g.:
+  // 'agent_abc123',
+];
+
 @Component({
   tag: 'staylift-widget',
   styleUrl: 'staylift-widget.css',
@@ -480,6 +486,9 @@ export class StayliftWidget {
   }
 
   render() {
+    // Block rendering for unpaid/inactive agent IDs
+    if (BLOCKED_AGENT_IDS.includes(this.agentId)) return null;
+
     const isTransitioning = this.status === 'connecting' || this.status === 'disconnecting';
     const isCallActive = this.status === 'connected' && !this.isTextOnlyMode;
     const theme = this.getThemeColors();
