@@ -60,7 +60,7 @@ export namespace Components {
          */
         "mode": WidgetMode;
         /**
-          * @default false
+          * @default true
          */
         "onlyText": boolean;
         /**
@@ -182,7 +182,7 @@ declare namespace LocalJSX {
         "onStatusChanged"?: (event: StayliftWidgetCustomEvent<WidgetStatus>) => void;
         "onWidgetError"?: (event: StayliftWidgetCustomEvent<{ message: string; code?: string }>) => void;
         /**
-          * @default false
+          * @default true
          */
         "onlyText"?: boolean;
         /**

@@ -49,7 +49,7 @@ export class StayliftWidget {
   @Prop() language: string = 'en';
   @Prop() autoExpand: boolean = false;
   @Prop() showBranding: boolean = true;
-  @Prop() onlyText: boolean = false;
+  @Prop() onlyText: boolean = true;
 
   // FAB customization
   @Prop() avatarUrl?: string;
