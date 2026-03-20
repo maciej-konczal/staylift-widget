@@ -17,7 +17,7 @@
 | `fabPrompt`            | `fab-prompt`      |             | `string`                        | `'Do you need help?'` |
 | `language`             | `language`        |             | `string`                        | `'en'`                |
 | `mode`                 | `mode`            |             | `"dark" \| "light"`             | `'dark'`              |
-| `onlyText`             | `only-text`       |             | `boolean`                       | `false`               |
+| `onlyText`             | `only-text`       |             | `boolean`                       | `true`                |
 | `positionX`            | `position-x`      |             | `"center" \| "left" \| "right"` | `'right'`             |
 | `positionY`            | `position-y`      |             | `"bottom" \| "top"`             | `'bottom'`            |
 | `primaryColor`         | `primary-color`   |             | `string`                        | `'#6366f1'`           |
