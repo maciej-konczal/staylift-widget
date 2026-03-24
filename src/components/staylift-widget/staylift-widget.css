@@ -477,6 +477,7 @@
   color: inherit;
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
+  min-height: 80px;
 }
 
 .sl-offer-card:hover {
@@ -486,9 +487,11 @@
 
 .sl-offer-img {
   width: 80px;
-  height: 80px;
+  min-height: 80px;
+  height: auto;
   object-fit: cover;
   flex-shrink: 0;
+  background: var(--sl-border);
 }
 
 .sl-offer-body {

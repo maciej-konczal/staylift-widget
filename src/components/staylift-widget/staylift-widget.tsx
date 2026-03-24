@@ -68,9 +68,6 @@ export class StayliftWidget {
   @State() copiedIndex: number | null = null;
   @State() selectedMode: ConversationMode = 'text';
   @State() offerIndexes: Record<number, number> = {};
-  @State() pinnedOffers: OfferCard[] | null = null;
-  private pinnedOfferIndex: number = 0;
-  private pinnedMessagesRemaining: number = 0;
 
   // ============ EVENTS ============
   @Event() conversationStarted: EventEmitter<void>;
@@ -198,9 +195,8 @@ export class StayliftWidget {
               title: o.title ? String(o.title) : undefined,
               description: o.description ? String(o.description) : undefined,
             }));
-            this.pinnedOfferIndex = 0;
-            this.pinnedMessagesRemaining = 1;
-            this.pinnedOffers = offers;
+            const offersMessage: ChatMessage = { role: 'assistant', content: '', offers };
+            this.messages = [...this.messages, offersMessage];
             this.scrollToBottom();
             return `${offers.length} offer(s) displayed to user`;
           },
@@ -247,25 +243,7 @@ export class StayliftWidget {
               content: message.message,
             };
 
-            if (this.pinnedOffers) {
-              if (this.pinnedMessagesRemaining > 0) {
-                // Still pinned — message goes above the carousel
-                this.messages = [...this.messages, chatMessage];
-                this.pinnedMessagesRemaining--;
-              } else {
-                // Unpin — flush offers into messages, then add new message below
-                const offersMessage: ChatMessage = {
-                  role: 'assistant',
-                  content: '',
-                  offers: this.pinnedOffers,
-                };
-                this.messages = [...this.messages, offersMessage, chatMessage];
-                this.pinnedOffers = null;
-                this.pinnedOfferIndex = 0;
-              }
-            } else {
-              this.messages = [...this.messages, chatMessage];
-            }
+            this.messages = [...this.messages, chatMessage];
 
             this.messageReceived.emit(chatMessage);
             this.scrollToBottom();
@@ -735,7 +713,7 @@ export class StayliftWidget {
 
     return (
       <div class="sl-content" ref={(el) => this.messagesContainer = el ?? null}>
-        {this.messages.length === 0 && !this.pinnedOffers ? (
+        {this.messages.length === 0 ? (
           <div class="sl-empty">
             {this.avatarUrl ? (
               <img src={this.avatarUrl} alt="" class="sl-empty-avatar" />
@@ -749,7 +727,7 @@ export class StayliftWidget {
               {isConnecting ? this.t('connecting') : isConnected ? this.t('ready') : this.t(this.onlyText ? 'emptyDescTextOnly' : 'emptyDesc')}
             </p>
           </div>
-        ) : [
+        ) : (
           this.messages.map((message, index) => (
             <div class={`sl-msg sl-msg--${message.role}`} key={index}>
               {message.offers && message.offers.length > 0 ? (
@@ -781,19 +759,8 @@ export class StayliftWidget {
                 </div>
               )}
             </div>
-          )),
-          // Pinned offers — always rendered at the bottom
-          this.pinnedOffers && (
-            <div class="sl-msg sl-msg--assistant sl-pinned-offers" key="pinned">
-              {this.renderOffersCarousel(
-                this.pinnedOffers,
-                'pinned-offers',
-                this.pinnedOfferIndex,
-                (idx) => { this.pinnedOfferIndex = idx; this.pinnedOffers = [...this.pinnedOffers!]; },
-              )}
-            </div>
-          ),
-        ]}
+          ))
+        )}
       </div>
     );
   }
