@@ -25,7 +25,8 @@ interface ChatMessage {
 const BLOCKED_AGENT_IDS: string[] = [
   // Add agent IDs here to block them, e.g.:
   // 'agent_abc123',
-  'agent_7701ke555bnjedaacb1w0x9q3c5p'
+  'agent_7701ke555bnjedaacb1w0x9q3c5p',
+  'agent_2801kfn62tyye3mv2enkv3btar6k'
 ];
 
 @Component({
