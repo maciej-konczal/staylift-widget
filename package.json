@@ -1,6 +1,6 @@
 {
   "name": "@staylift-tech/conv-widget",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Staylift Conversational Widget - Embeddable agents for hotels",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
